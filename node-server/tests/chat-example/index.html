@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+      <title>Socket.IO chat</title>
+	      <style>
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	body { font: 13px Helvetica, Arial; }
+	form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+	form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+	form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+	#messages { list-style-type: none; margin: 0; padding: 0; }
+	#messages li { padding: 5px 10px; }
+	#messages li:nth-child(odd) { background: #eee; }
+	</style>
+</head>
+	<body>
+		<ul id="messages"></ul>
+		<form action="">
+			<input id="m" autocomplete="off" /><button>Send</button>
+		</form>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<script>
+			if (/Firefox\/\s/.test(navigator.userAgent)){
+		    	var socket = io.connect('127.0.0.1:8080',{transports:['xhr-polling']}); 
+			} 
+			else if (/MSIE (\d+.\d+);/.test(navigator.userAgent)){
+			    var socket = io().set({transports:['jsonp-polling']}); 
+			} 
+			else { 
+			    var socket = io(); 
+			}
+			//var socket = io();
+			$('form').submit(function(){
+				socket.emit('chat message', $('#m').val());
+				$('#m').val('');
+				return false;
+			});
+			
+			function getCookie(c_name){
+				var strCookie = document.cookie;
+				var arrCookie = strCookie.split("; ");
+				for(var i=0;i<arrCookie.length;i++){
+					var arr=arrCookie[i].split("=");
+					//document.write(arr[0] + "---" + arr[1]);
+					if(arr[0] == c_name) return arr[1];
+				}return "";
+			}
+
+			//document.write("ttt:" + document.cookie);
+
+			socket.on('alive', function(socket_id){
+				var testdata = getCookie('userauth');
+				socket.emit('verify', testdata);
+				socket.on('ready', function(socket_idd){
+					//$('#messages').append($('<li>').text(socket_id.text));
+					//$('#messages').append($('<li>').text(socket_idd));
+					if(socket_idd.text == socket_id.text)
+						$('#messages').append($('<li>').text('Get Ready!'));
+				});
+			});
+
+			socket.on('chat message', function(msg){
+					
+				//var newArr = jQuery.parseJSON(msg);//JSON.parse(msg);
+				//alert(newArr.length());
+				//while (newArr.length > 0) {
+				//	$('#messages').append($('<li>').text(newArr.pop()));
+				//}
+				$('#messages').append($('<li>').text(msg));
+			});
+		</script>
+		</body>
+</html>
